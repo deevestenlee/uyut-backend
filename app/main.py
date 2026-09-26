@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routers import public, admin 
 from app.database import engine, Base
 
-Автоматически создаем все таблицы в БД при запуске
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Uyut Bakery API")
