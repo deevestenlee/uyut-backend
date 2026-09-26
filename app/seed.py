@@ -13,7 +13,7 @@ async def seed_data():
 		await conn.run_sync(Base.metadata.create_all)
 
 	async with AsyncSessionLocal() as session:
-   	 # Очищаем старые данные
+   	# Очищаем старые данные
    	await session.execute(delete(ProductVariant))
     await session.execute(delete(Product))
     await session.commit()
