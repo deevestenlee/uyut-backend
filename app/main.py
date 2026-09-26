@@ -1,6 +1,10 @@
 from fastapi import FastAPI 
 from fastapi.middleware.cors import CORSMiddleware 
-from app.routers import public, admin
+from app.routers import public, admin 
+from app.database import engine, Base
+
+Автоматически создаем все таблицы в БД при запуске
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Uyut Bakery API")
 
@@ -11,8 +15,10 @@ app.add_middleware(
   allow_methods=[""], 
   allow_headers=["*"], 
 )
+
 app.include_router(public.router, prefix="/api/v1") 
 app.include_router(admin.router, prefix="/api/v1/admin")
+
 @app.get("/") 
 def root(): 
   return {"message": "Uyut Bakery API is running"}
