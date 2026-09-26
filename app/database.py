@@ -1,17 +1,24 @@
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.orm import DeclarativeBase
-import os
+import os 
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker 
+from sqlalchemy.orm import declarative_base
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/uyut_db")
+DATABASE_URL = os.getenv("DATABASE_URL")
+Преобразуем postgresql:// в postgresql+asyncpg:// если требуется
+if DATABASE_URL and DATABASE_URL.startswith("postgresql://"): 
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+    
+engine = create_async_engine(DATABASE_URL, echo=True)
 
-engine = create_async_engine(DATABASE_URL, echo=False, future=True)
-AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+AsyncSessionLocal = async_sessionmaker( 
+    bind=engine, 
+    class_=AsyncSession, 
+    expire_on_commit=False 
+)
 
-
-class Base(DeclarativeBase):
-    pass
-
-
-async def get_session() -> AsyncSession:
-    async with AsyncSessionLocal() as session:
-        yield session
+Base = declarative_base()
+async def get_db(): 
+async with AsyncSessionLocal() as session: 
+try: 
+    yield session 
+finally: 
+    await session.close()
