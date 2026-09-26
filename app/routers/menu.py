@@ -4,22 +4,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
-from app.models import Category, Dish
-from app.schemas import CategoryOut
+from app.models import Product
 
 router = APIRouter(prefix="/api/menu", tags=["Menu"])
 
 
-@router.get("", response_model=list[CategoryOut])
+@router.get("")
 async def get_menu(session: AsyncSession = Depends(get_db)):
     stmt = (
-        select(Category)
-        .where(Category.is_active.is_(True))
-        .order_by(Category.position, Category.id)
-        .options(
-            selectinload(Category.dishes.and_(Dish.is_available.is_(True)))
-            .selectinload(Dish.options)
-        )
+        select(Product)
+        .where(Product.is_active.is_(True))
+        .options(selectinload(Product.variants))
     )
     result = await session.execute(stmt)
-    return list(result.scalars().unique().all())
+    products = result.scalars().unique().all()
+    return products
