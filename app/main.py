@@ -1,24 +1,23 @@
-from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from app.database import engine, Base
-from app.routers import public, admin
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 
+from app.database import Base, engine
+from app.routers import admin, menu, orders
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Асинхронное создание таблиц при старте приложения
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    yield
+app = FastAPI(title="Cafe Mini App")
 
+# Подключаем роутеры API
+app.include_router(menu.router)
+app.include_router(orders.router)
+app.include_router(admin.router)
 
-app = FastAPI(title="Bakery API", lifespan=lifespan)
-
-# Подключение роутеров
-app.include_router(public.router)
-app.include_router(admin.router, prefix="/admin")
-
+# Подключаем папку со статикой (визуалом)
+if os.path.exists("static"):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
-async def root():
-    return {"message": "Uyut Bakery API is running"}
+async def read_index():
+    # Главная страница с визуалом
+    return FileResponse("static/index.html")
