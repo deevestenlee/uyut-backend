@@ -1,23 +1,24 @@
-from fastapi import FastAPI 
-from fastapi.middleware.cors import CORSMiddleware 
-from app.routers import public, admin 
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
 from app.database import engine, Base
+from app.routers import public, admin
 
-Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Uyut Bakery API")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Асинхронное создание таблиц при старте приложения
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
 
-app.add_middleware( 
-  CORSMiddleware, 
-  allow_origins=[""], 
-  allow_credentials=True, 
-  allow_methods=[""], 
-  allow_headers=["*"], 
-)
 
-app.include_router(public.router, prefix="/api/v1") 
-app.include_router(admin.router, prefix="/api/v1/admin")
+app = FastAPI(title="Bakery API", lifespan=lifespan)
 
-@app.get("/") 
-def root(): 
-  return {"message": "Uyut Bakery API is running"}
+# Подключение роутеров
+app.include_router(public.router)
+app.include_router(admin.router, prefix="/admin")
+
+
+@app.get("/")
+async def root():
+    return {"message": "Uyut Bakery API is running"}
