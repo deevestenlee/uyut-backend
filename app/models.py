@@ -1,4 +1,5 @@
-from datetime import datetime from typing import Optional, List
+from datetime import datetime 
+from typing import Optional, List
 from sqlalchemy import String, Integer, Boolean, ForeignKey, Text, DateTime, func from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 class RestaurantSettings(Base): tablename = "restaurant_settings"
